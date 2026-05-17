@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <h2>Serviços</h2>
+
+    <button
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#modalServico"
+    >
+        Novo Serviço
+    </button>
+
+</div>
+
+<div class="table-card">
+
+    <div class="table-responsive">
+
+        <table class="table table-hover align-middle">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Serviço</th>
+                    <th>Cliente</th>
+                    <th>Valor</th>
+                    <th>Data</th>
+                    <th class="text-center">Ações</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for servico in servicos %}
+                <tr>
+
+                    <td>{{ servico.id }}</td>
+                    <td>{{ servico.nome }}</td>
+                    <td>{{ servico.cliente_nome }}</td>
+                    <td>R$ {{ servico.valor }}</td>
+                    <td>{{ servico.data.strftime('%d/%m/%Y') if servico.data else 'N/A' }}</td>
+
+                    <td class="text-center">
+
+                        <button
+                            type="button"
+                            class="btn btn-warning btn-sm btn-editar-servico"
+
+                            data-id="{{ servico.id }}"
+                            data-nome="{{ servico.nome }}"
+                            data-descricao="{{ servico.descricao }}"
+                            data-valor="{{ servico.valor }}"
+                            data-data="{{ servico.data }}"
+                            data-cliente="{{ servico.cliente_id }}"
+                        >
+                            Editar
+                        </button>
+
+                        <a
+                            href="{{ url_for('excluir_servico', id=servico.id) }}"
+                            class="btn btn-danger btn-sm btn-delete"
+                        >
+                            Excluir
+                        </a>
+
+                    </td>
+
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL CADASTRO -->
+<div
+    class="modal fade"
+    id="modalServico"
+    tabindex="-1"
+>
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Novo Serviço
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                ></button>
+
+            </div>
+
+            <form
+                action="{{ url_for('adicionar_servico') }}"
+                method="POST"
+            >
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label>Nome Serviço</label>
+
+                        <input
+                            type="text"
+                            name="nome"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Descrição</label>
+
+                        <textarea
+                            name="descricao"
+                            class="form-control"
+                        ></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Valor</label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            name="valor"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Data</label>
+
+                        <input
+                            type="date"
+                            name="data"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Cliente</label>
+
+                        <select
+                            name="cliente_id"
+                            class="form-select"
+                            required
+                        >
+
+                            {% for cliente in clientes %}
+                            <option value="{{ cliente.id }}">
+                                {{ cliente.nome }}
+                            </option>
+                            {% endfor %}
+
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary">
+                        Salvar Serviço
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL EDITAR -->
+<div
+    class="modal fade"
+    id="modalEditarServico"
+    tabindex="-1"
+>
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Editar Serviço
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                ></button>
+
+            </div>
+
+            <form
+                id="formEditarServico"
+                method="POST"
+            >
+
+                <div class="modal-body">
+
+                    <input
+                        type="hidden"
+                        id="editServicoId"
+                        name="id"
+                    >
+
+                    <div class="mb-3">
+                        <label>Nome Serviço</label>
+
+                        <input
+                            type="text"
+                            id="editServicoNome"
+                            name="nome"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Descrição</label>
+
+                        <textarea
+                            id="editServicoDescricao"
+                            name="descricao"
+                            class="form-control"
+                        ></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Valor</label>
+
+                        <input
+                            type="number"
+                            step="0.01"
+                            id="editServicoValor"
+                            name="valor"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Data</label>
+
+                        <input
+                            type="date"
+                            id="editServicoData"
+                            name="data"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Cliente</label>
+
+                        <select
+                            id="editServicoCliente"
+                            name="cliente_id"
+                            class="form-select"
+                            required
+                        >
+
+                            {% for cliente in clientes %}
+                            <option value="{{ cliente.id }}">
+                                {{ cliente.nome }}
+                            </option>
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn btn-success">
+                        Atualizar Serviço
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

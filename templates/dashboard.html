@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="cards-grid">
+
+    <div class="dashboard-card">
+        <h3>Total Clientes</h3>
+        <h2>{{ total_clientes }}</h2>
+    </div>
+
+    <div class="dashboard-card">
+        <h3>Total Serviços</h3>
+        <h2>{{ total_servicos }}</h2>
+    </div>
+
+    <div class="dashboard-card">
+        <h3>Faturamento</h3>
+        <h2>R$ {{ '%.2f'|format(valor_total) }}</h2>
+    </div>
+
+</div>
+
+<div class="chart-container">
+    <canvas id="graficoServicos"></canvas>
+</div>
+
+<div class="table-section">
+
+    <div class="table-card">
+        <h3>Últimos Clientes</h3>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Cidade</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for cliente in ultimos_clientes %}
+                <tr>
+                    <td>{{ cliente.nome }}</td>
+                    <td>{{ cliente.cidade }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-card">
+        <h3>Últimos Serviços</h3>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Serviço</th>
+                    <th>Cliente</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for servico in ultimos_servicos %}
+                <tr>
+                    <td>{{ servico.nome }}</td>
+                    <td>{{ servico.cliente_nome }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = {{ labels | tojson }};
+    const valores = {{ valores | tojson }};
+
+    const ctx = document.getElementById('graficoServicos').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar', // Tipo de gráfico: 'bar' (barras) ou 'line' (linha)
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Faturamento por Mês (R$)',
+                data: valores,
+                backgroundColor: '#3498db',
+                borderColor: '#2980b9',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}
