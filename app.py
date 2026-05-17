@@ -345,38 +345,65 @@ def excluir_cliente(id):
 @app.route('/servicos')
 def servicos():
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    conn = None
+    cursor = None
 
-    cursor.execute("""
-        SELECT servicos.*,
-               clientes.nome AS cliente_nome
+    try:
 
-        FROM servicos
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-        INNER JOIN clientes
-        ON servicos.cliente_id = clientes.id
+        # LISTAR SERVIÇOS
+        cursor.execute("""
+            SELECT
+                servicos.id,
+                servicos.nome,
+                servicos.descricao,
+                servicos.valor,
+                servicos.data,
+                servicos.cliente_id,
+                clientes.nome AS cliente_nome
 
-        ORDER BY servicos.id DESC
-    """)
+            FROM servicos
 
-    servicos = cursor.fetchall()
+            INNER JOIN clientes
+            ON servicos.cliente_id = clientes.id
 
-    cursor.execute("""
-        SELECT *
-        FROM clientes
-        ORDER BY nome ASC
-    """)
+            ORDER BY servicos.id DESC
+        """)
 
-    clientes = cursor.fetchall()
+        servicos = cursor.fetchall()
 
-    conn.close()
+        # LISTAR CLIENTES
+        cursor.execute("""
+            SELECT *
+            FROM clientes
+            ORDER BY nome ASC
+        """)
 
-    return render_template(
-        'servicos.html',
-        servicos=servicos,
-        clientes=clientes
-    )
+        clientes = cursor.fetchall()
+
+        return render_template(
+            'servicos.html',
+            servicos=servicos,
+            clientes=clientes
+        )
+
+    except Exception as erro:
+
+        print(f'ERRO SERVIÇOS: {erro}')
+
+        flash(
+            f'Erro ao carregar serviços: {erro}',
+            'danger'
+        )
+
+        return redirect(url_for('dashboard'))
+
+    finally:
+
+        if conn:
+            conn.close()
 
 
 # =========================
@@ -386,35 +413,61 @@ def servicos():
 @app.route('/servicos/adicionar', methods=['POST'])
 def adicionar_servico():
 
-    nome = request.form['nome']
-    descricao = request.form['descricao']
-    valor = request.form['valor']
-    data = request.form['data']
-    cliente_id = request.form['cliente_id']
+    conn = None
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
 
-    cursor.execute("""
-        INSERT INTO servicos
-        (nome, descricao, valor, data, cliente_id)
+        nome = request.form['nome']
+        descricao = request.form['descricao']
+        valor = request.form['valor']
+        data = request.form['data']
+        cliente_id = request.form['cliente_id']
 
-        VALUES (?, ?, ?, ?, ?)
-    """, (
-        nome,
-        descricao,
-        valor,
-        data,
-        cliente_id
-    ))
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    conn.commit()
-    conn.close()
+        cursor.execute("""
+            INSERT INTO servicos
+            (
+                nome,
+                descricao,
+                valor,
+                data,
+                cliente_id
+            )
 
-    flash(
-        'Serviço cadastrado com sucesso!',
-        'success'
-    )
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            nome,
+            descricao,
+            valor,
+            data,
+            cliente_id
+        ))
+
+        conn.commit()
+
+        flash(
+            'Serviço cadastrado com sucesso!',
+            'success'
+        )
+
+    except Exception as erro:
+
+        if conn:
+            conn.rollback()
+
+        print(f'ERRO CADASTRAR SERVIÇO: {erro}')
+
+        flash(
+            f'Erro ao cadastrar serviço: {erro}',
+            'danger'
+        )
+
+    finally:
+
+        if conn:
+            conn.close()
 
     return redirect(url_for('servicos'))
 
@@ -425,6 +478,8 @@ def adicionar_servico():
 
 @app.route('/servicos/editar/<int:id>', methods=['POST'])
 def editar_servico(id):
+
+    conn = None
 
     try:
 
@@ -458,7 +513,6 @@ def editar_servico(id):
         ))
 
         conn.commit()
-        conn.close()
 
         flash(
             'Serviço atualizado com sucesso!',
@@ -467,10 +521,20 @@ def editar_servico(id):
 
     except Exception as erro:
 
+        if conn:
+            conn.rollback()
+
+        print(f'ERRO EDITAR SERVIÇO: {erro}')
+
         flash(
             f'Erro ao atualizar serviço: {erro}',
             'danger'
         )
+
+    finally:
+
+        if conn:
+            conn.close()
 
     return redirect(url_for('servicos'))
 
@@ -482,21 +546,41 @@ def editar_servico(id):
 @app.route('/servicos/excluir/<int:id>')
 def excluir_servico(id):
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    conn = None
 
-    cursor.execute(
-        "DELETE FROM servicos WHERE id = ?",
-        (id,)
-    )
+    try:
 
-    conn.commit()
-    conn.close()
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    flash(
-        'Serviço excluído com sucesso!',
-        'danger'
-    )
+        cursor.execute(
+            "DELETE FROM servicos WHERE id = ?",
+            (id,)
+        )
+
+        conn.commit()
+
+        flash(
+            'Serviço excluído com sucesso!',
+            'danger'
+        )
+
+    except Exception as erro:
+
+        if conn:
+            conn.rollback()
+
+        print(f'ERRO EXCLUIR SERVIÇO: {erro}')
+
+        flash(
+            f'Erro ao excluir serviço: {erro}',
+            'danger'
+        )
+
+    finally:
+
+        if conn:
+            conn.close()
 
     return redirect(url_for('servicos'))
 

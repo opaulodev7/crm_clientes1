@@ -42,7 +42,7 @@
                     <td>{{ servico.nome }}</td>
                     <td>{{ servico.cliente_nome }}</td>
                     <td>R$ {{ servico.valor }}</td>
-                    <td>{{ servico.data.strftime('%d/%m/%Y') if servico.data else 'N/A' }}</td>
+                    <td>{{ servico.data[8:10] }}/{{ servico.data[5:7] }}/{{ servico.data[0:4] }}</td>
 
                     <td class="text-center">
 
